@@ -111,7 +111,7 @@
 
       // Salva na tabela nova: agendamentos_amigo
       const { data, error } = await supabaseClient
-        .from('agendamentos_amigo')
+        .from('agendamentos_wl')
         .insert([{ nome_cliente: nome, whatsapp: whatsapp, servico: servico, horario: horario }]);
 
       if (error) {

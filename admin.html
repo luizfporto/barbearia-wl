@@ -90,7 +90,7 @@
 
       // Busca na tabela nova: agendamentos_amigo
       const { data, error } = await supabaseClient
-        .from('agendamentos_amigo')
+        .from('agendamentos_wl')
         .select('*')
         .order('horario', { ascending: true });
 
