@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel do Barbeiro - Agendamentos</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #121212;
+      color: #ffffff;
+      padding: 20px;
+      margin: 0;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: #1e1e1e;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    }
+    h2 { color: #f39c12; text-align: center; }
+    .btn-atualizar {
+      background: #f39c12;
+      border: none;
+      padding: 10px 15px;
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 5px;
+      margin-bottom: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #333;
+    }
+    th { background-color: #2a2a2a; color: #f39c12; }
+    tr:hover { background-color: #252525; }
+    .btn-wsp {
+      background: #25d366;
+      color: #fff;
+      text-decoration: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: bold;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+  <div class="container">
+    <h2>💈 Agendamentos do Dia</h2>
+    <button class="btn-atualizar" onclick="carregarAgendamentos()">🔄 Atualizar Lista</button>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Horário</th>
+          <th>Cliente</th>
+          <th>Serviço</th>
+          <th>Contato</th>
+        </tr>
+      </thead>
+      <tbody id="tabelaAgendamentos">
+        <tr>
+          <td colspan="4" style="text-align:center;">Carregando agendamentos...</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    // COLE SUAS CREDENCIAIS DO SUPABASE AQUI:
+    const SUPABASE_URL = "https://eyckgldebwinlduqtxtj.supabase.co/rest/v1/";
+    const SUPABASE_KEY = "sb_publishable_3FU7UctDj25K-nYT5AkyJw_fqw-_fDL";
+    
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    async function carregarAgendamentos() {
+      const tabela = document.getElementById('tabelaAgendamentos');
+      tabela.innerHTML = '<tr><td colspan="4" style="text-align:center;">Buscando...</td></tr>';
+
+      // Busca na tabela nova: agendamentos_amigo
+      const { data, error } = await supabaseClient
+        .from('agendamentos_amigo')
+        .select('*')
+        .order('horario', { ascending: true });
+
+      if (error) {
+        tabela.innerHTML = `<tr><td colspan="4" style="color:red; text-align:center;">Erro: ${error.message}</td></tr>`;
+        return;
+      }
+
+      if (data.length === 0) {
+        tabela.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhum agendamento encontrado.</td></tr>';
+        return;
+      }
+
+      tabela.innerHTML = '';
+      data.forEach(item => {
+        const numeroLimpo = item.whatsapp.replace(/\D/g, '');
+        
+        tabela.innerHTML += `
+          <tr>
+            <td><strong>${item.horario}</strong></td>
+            <td>${item.nome_cliente}</td>
+            <td>${item.servico}</td>
+            <td>
+              <a class="btn-wsp" href="https://wa.me/55${numeroLimpo}" target="_blank">
+                📱 Abrir Whats
+              </a>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    carregarAgendamentos();
+  </script>
+</body>
+</html>

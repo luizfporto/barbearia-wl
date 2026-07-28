@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- TROQUE PELO NOME DA BARBEARIA DO SEU AMIGO -->
+  <title>Agendamento - Barbearia</title>
+  
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #121212;
+      color: #ffffff;
+      display: flex;
+      justify-content: center;
+      padding: 20px;
+    }
+    .card {
+      background: #1e1e1e;
+      padding: 25px;
+      border-radius: 10px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+    }
+    h2 { text-align: center; color: #f39c12; }
+    label { display: block; margin-top: 15px; font-weight: bold; }
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border-radius: 5px;
+      border: 1px solid #333;
+      box-sizing: border-box;
+    }
+    input, select { background: #2a2a2a; color: #fff; }
+    button {
+      background: #f39c12;
+      color: #000;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+    button:hover { background: #e67e22; }
+    .price { font-size: 1.2em; color: #2ecc71; text-align: center; margin-top: 10px; font-weight: bold; }
+    footer { text-align: center; margin-top: 25px; font-size: 12px; color: #888; }
+  </style>
+
+  <!-- SDK do Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+  <div class="card">
+    <!-- NOME DA BARBEARIA -->
+    <h2>Barbearia do Amigo</h2>
+
+    <form id="formAgendamento">
+      <label for="servico">Escolha o Serviço:</label>
+      <select id="servico" onchange="atualizarPreco()" required>
+        <option value="">-- Selecione --</option>
+        <option value="Cabelo" data-preco="35.00">Corte Masculino - R$ 35,00</option>
+        <option value="Barba" data-preco="25.00">Barba Completa - R$ 25,00</option>
+        <option value="Combo Cabelo + Barba" data-preco="50.00">Combo Cabelo + Barba - R$ 50,00</option>
+      </select>
+
+      <div class="price" id="exibirTotal">Total: R$ 0,00</div>
+
+      <label for="nome">Seu Nome:</label>
+      <input type="text" id="nome" placeholder="Digite seu nome completo" required>
+
+      <label for="whatsapp">Seu WhatsApp:</label>
+      <input type="tel" id="whatsapp" placeholder="(00) 00000-0000" required>
+
+      <label for="horario">Horário:</label>
+      <input type="time" id="horario" required>
+
+      <button type="submit">Confirmar Agendamento</button>
+    </form>
+
+    <footer>
+      <p>&copy; 2026 Luiz Porto &reg; — Desenvolvido sob medida.</p>
+    </footer>
+  </div>
+
+  <script>
+    // COLE SUAS CREDENCIAIS DO SUPABASE AQUI:
+    const SUPABASE_URL = "https://eyckgldebwinlduqtxtj.supabase.co/rest/v1/";
+    const SUPABASE_KEY = "sb_publishable_3FU7UctDj25K-nYT5AkyJw_fqw-_fDL";
+    
+    // WHATSAPP DO DONO (apenas números com DDD, ex: 5511999999999)
+    const WHATSAPP_BARBEARIA = "5511999999999";
+
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    function atualizarPreco() {
+      const select = document.getElementById('servico');
+      const opcaoSelecionada = select.options[select.selectedIndex];
+      const preco = opcaoSelecionada.getAttribute('data-preco') || '0.00';
+      document.getElementById('exibirTotal').innerText = `Total: R$ ${parseFloat(preco).toFixed(2).replace('.', ',')}`;
+    }
+
+    document.getElementById('formAgendamento').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const servico = document.getElementById('servico').value;
+      const nome = document.getElementById('nome').value;
+      const whatsapp = document.getElementById('whatsapp').value;
+      const horario = document.getElementById('horario').value;
+
+      // Salva na tabela nova: agendamentos_amigo
+      const { data, error } = await supabaseClient
+        .from('agendamentos_amigo')
+        .insert([{ nome_cliente: nome, whatsapp: whatsapp, servico: servico, horario: horario }]);
+
+      if (error) {
+        alert('Erro ao agendar: ' + error.message);
+      } else {
+        alert('Agendamento salvo! Redirecionando para o WhatsApp...');
+
+        const mensagem = `*Novo Agendamento!* 💈%0A%0A` +
+                         `*Cliente:* ${nome}%0A` +
+                         `*Serviço:* ${servico}%0A` +
+                         `*Horário:* ${horario}%0A` +
+                         `*Contato:* ${whatsapp}`;
+
+        const linkWhatsapp = `https://wa.me/${WHATSAPP_BARBEARIA}?text=${mensagem}`;
+
+        document.getElementById('formAgendamento').reset();
+        document.getElementById('exibirTotal').innerText = 'Total: R$ 0,00';
+        
+        window.open(linkWhatsapp, '_blank');
+      }
+    });
+  </script>
+</body>
+</html>
